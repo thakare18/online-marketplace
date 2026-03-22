@@ -34,3 +34,6 @@ const registerUserValidation = [
     .withMessage('Last name is required')
 ];
 
+module.exports = {
+    registerUserValidation
+};

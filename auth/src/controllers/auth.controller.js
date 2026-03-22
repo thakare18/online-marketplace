@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const userModel = require('../models/user.model');
 
-async function register(req, res) {
+async function registerUser(req, res) {
     try {
         const { username, email, password, firstName, lastName, role } = req.body;
 
@@ -45,5 +45,5 @@ async function register(req, res) {
 }
 
 module.exports = {
-    register
+    registerUser
 };
