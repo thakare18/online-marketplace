@@ -46,4 +46,70 @@ describe('Auth API', () => {
         expect(res.statusCode).toBe(409);
         expect(res.body.message).toBe('Username or email already exists');
     });
+
+    test('POST /api/auth/login authenticates valid credentials', async () => {
+        const payload = {
+            username: 'login_user',
+            email: 'login@example.com',
+            password: 'password123',
+            fullName: {
+                firstName: 'Login',
+                lastName: 'User'
+            }
+        };
+
+        await request(app).post('/api/auth/register').send(payload);
+
+        const res = await request(app)
+            .post('/api/auth/login')
+            .send({ email: payload.email, password: payload.password });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.message).toBe('Logged in successfully');
+        expect(res.body.user).toBeDefined();
+        expect(res.body.user.email).toBe(payload.email);
+        expect(res.headers['set-cookie']).toBeDefined();
+    });
+
+    test('POST /api/auth/login rejects invalid credentials', async () => {
+        const payload = {
+            username: 'wrong_pass_user',
+            email: 'wrongpass@example.com',
+            password: 'password123',
+            fullName: {
+                firstName: 'Wrong',
+                lastName: 'Pass'
+            }
+        };
+
+        await request(app).post('/api/auth/register').send(payload);
+
+        const res = await request(app)
+            .post('/api/auth/login')
+            .send({ email: payload.email, password: 'bad-password' });
+
+        expect(res.statusCode).toBe(401);
+        expect(res.body.message).toBe('Invalid credentials');
+    });
+
+    test('POST /api/auth/login accepts normalized email input', async () => {
+        const payload = {
+            username: 'case_user',
+            email: 'Case.User@Example.com',
+            password: 'password123',
+            fullName: {
+                firstName: 'Case',
+                lastName: 'User'
+            }
+        };
+
+        await request(app).post('/api/auth/register').send(payload);
+
+        const res = await request(app)
+            .post('/api/auth/login')
+            .send({ email: '  case.user@example.com ', password: payload.password });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.message).toBe('Logged in successfully');
+    });
 });
