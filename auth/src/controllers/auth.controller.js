@@ -130,6 +130,13 @@ async function loginUser(req, res) {
     }
 }
 
+async function getCurrentUser(req,res){
+    return res.status(200).json({
+        message: "Get current user successfully",
+        user: req.user
+    })
+}
+
 // async function getCurrentUser(req, res) {
 //     return res.status(200).json({
 //         message: "Current user fetched successfully",
