@@ -5,6 +5,8 @@ const connectDB = require('../src/db/db');
 let mongoServer;
 
 beforeAll(async () => {
+    process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key';
+
     // Start an isolated, in-memory MongoDB instance for test runs.
     mongoServer = await MongoMemoryServer.create();
     const uri = mongoServer.getUri();

@@ -10,6 +10,6 @@ router.post('/register', validator.registerUserValidation, validator.responseVal
 router.post('/login', validator.loginUserValidation, authController.loginUser);
 
 // GET /api/auth/me
-router.get('/me', authMiddleware.authMiddleware, authController.getCurrentUser);
+router.get('/me', authMiddleware, authController.getCurrentUser);
 
 module.exports = router;
