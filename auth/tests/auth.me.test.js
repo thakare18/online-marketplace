@@ -19,7 +19,6 @@ describe('GET /api/auth/me', () => {
     });
 
     it('returns 200 and current user when valid token cookie is present', async () => {
-        // seed a user
         const password = 'Secret123!';
         const hash = await bcrypt.hash(password, 10);
         const user = await userModel.create({
@@ -29,7 +28,6 @@ describe('GET /api/auth/me', () => {
             fullName: { firstName: 'Me', lastName: 'User' },
         });
 
-        // log in to obtain auth cookie
         const loginRes = await request(app)
             .post('/api/auth/login')
             .send({ email: 'me@example.com', password });
@@ -37,7 +35,6 @@ describe('GET /api/auth/me', () => {
         const setCookie = loginRes.headers[ 'set-cookie' ];
         expect(setCookie).toBeDefined();
 
-        // call /me with cookie
         const res = await request(app)
             .get('/api/auth/me')
             .set('Cookie', setCookie);

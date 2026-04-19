@@ -138,6 +138,22 @@ async function getCurrentUser(req,res){
     })
 }
 
+async function logoutUser(req, res) {
+    const token = req.cookies.token;
+    
+    if (token) {
+        await redis.set(`blacklist:${token}`, 'true', 'EX', 24 * 60 * 60); // expire in just 1 day
+    }
+
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: true,
+    });
+
+    return res.status(200).json({ message: "Logged out successfully" });
+}
+
+
 // async function getCurrentUser(req, res) {
 //     return res.status(200).json({
 //         message: "Current user fetched successfully",
@@ -245,5 +261,6 @@ async function getCurrentUser(req,res){
 module.exports = {
     registerUser,
     loginUser,
-    getCurrentUser
+    getCurrentUser,
+    logoutUser
 }

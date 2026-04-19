@@ -11,5 +11,6 @@ router.post('/login', validator.loginUserValidation, authController.loginUser);
 
 // GET /api/auth/me
 router.get('/me', authMiddleware, authController.getCurrentUser);
+router.get('/logout', authMiddleware, authController.logoutUser);
 
 module.exports = router;
