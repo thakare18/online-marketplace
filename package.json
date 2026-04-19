@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "ioredis": "^5.10.1",
     "nodemon": "^3.1.14"
   }
 }
