@@ -85,8 +85,52 @@ const loginUserValidation = [
     }
 ]
 
+const addUserAddressValidation = [
+    body('street')
+    .exists({ checkFalsy: true })
+    .withMessage('Street is required')
+    .bail()
+    .isString()
+    .withMessage('Street must be a string')
+    .trim(),
+    body('city')
+    .exists({ checkFalsy: true })
+    .withMessage('City is required')
+    .bail()
+    .isString()
+    .withMessage('City must be a string')
+    .trim(),
+    body('state')
+    .exists({ checkFalsy: true })
+    .withMessage('State is required')
+    .bail()
+    .isString()
+    .withMessage('State must be a string')
+    .trim(),
+    body('zip')
+    .exists({ checkFalsy: true })
+    .withMessage('Zip code is required')
+    .bail()
+    .isString()
+    .withMessage('Zip code must be a string')
+    .trim(),
+    body('country')
+    .exists({ checkFalsy: true })
+    .withMessage('Country is required')
+    .bail()
+    .isString()
+    .withMessage('Country must be a string')
+    .trim(),
+    body('isDefault')
+    .optional()
+    .isBoolean()
+    .withMessage('isDefault must be a boolean')
+
+];
+
 module.exports = {
     registerUserValidation,
     loginUserValidation,
+    addUserAddressValidation,
     responseValidationErrors
 };

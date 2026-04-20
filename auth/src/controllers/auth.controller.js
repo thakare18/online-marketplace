@@ -167,9 +167,36 @@ return res.status(200).json({
     message : "User addresses fetched successfully",
     addresses: user.addresses
 })
-
-
 }
+
+async function addUserAddress(req, res) {
+    const id = req.user.id
+    const { street, city, state, zip, country, isDefault } = req.body;
+    const user = await userModel.findOneAndUpdate({ _id: id }, {
+        $push: {
+            addresses: {
+                street,
+                city,
+                state,
+                zip,
+                country,
+                isDefault
+        }
+    } },
+    { new: true });
+
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(201).json({
+        message: "Address added successfully",
+        address: user.addresses[ user.addresses.length - 1 ]
+
+    });
+}
+
+
 
 // async function getCurrentUser(req, res) {
 //     return res.status(200).json({
@@ -280,5 +307,6 @@ module.exports = {
     loginUser,
     getCurrentUser,
     logoutUser,
-    getUserAddresses
+    getUserAddresses,
+    addUserAddress
 }
