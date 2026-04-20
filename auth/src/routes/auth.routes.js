@@ -13,4 +13,6 @@ router.post('/login', validator.loginUserValidation, authController.loginUser);
 router.get('/me', authMiddleware, authController.getCurrentUser);
 router.get('/logout', authMiddleware, authController.logoutUser);
 
+router.get('/auth/users/me/addresses', authMiddleware, authController.getUserAddresses);
+
 module.exports = router;

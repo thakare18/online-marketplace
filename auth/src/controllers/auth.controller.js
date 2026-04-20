@@ -153,6 +153,23 @@ async function logoutUser(req, res) {
     return res.status(200).json({ message: "Logged out successfully" });
 }
 
+async function getUserAddresses(req, res) {
+
+const id = req.user.id
+
+const user = await userModel.findById(id).select('addresses');
+
+if (!user) {
+    return res.status(404).json({ message: "User not found" });
+}
+
+return res.status(200).json({
+    message : "User addresses fetched successfully",
+    addresses: user.addresses
+})
+
+
+}
 
 // async function getCurrentUser(req, res) {
 //     return res.status(200).json({
@@ -262,5 +279,6 @@ module.exports = {
     registerUser,
     loginUser,
     getCurrentUser,
-    logoutUser
+    logoutUser,
+    getUserAddresses
 }
