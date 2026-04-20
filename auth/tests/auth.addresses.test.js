@@ -148,7 +148,8 @@ describe('Address Management Endpoints', () => {
                 .send(invalidAddress);
 
             expect(res.status).toBe(400);
-            expect(res.body.message).toContain('zip');
+            expect(res.body.message).toBe('Validation failed');
+            expect(res.body.errors.some(error => error.message.toLowerCase().includes('pin code'))).toBe(true);
         });
 
         it('validates required fields (street, city, state, zip, country)', async () => {
@@ -261,6 +262,7 @@ describe('Address Management Endpoints', () => {
                 .set('Cookie', authCookie);
 
             expect(res.status).toBe(400);
+            expect(res.body.message).toBe('Invalid address id');
         });
 
         it('returns empty addresses array after deleting the only address', async () => {

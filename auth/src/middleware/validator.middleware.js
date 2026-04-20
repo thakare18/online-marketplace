@@ -54,6 +54,12 @@ const registerUserValidation = [
     .isString()
     .withMessage('Last name must be a string')
     .trim()
+    .body('role')
+    .optional()
+    .isIn(['user', 'seller'])
+    .withMessage('Role must be either user or seller'),
+    responseValidationErrors
+
 ]
 
 
@@ -107,13 +113,6 @@ const addUserAddressValidation = [
     .isString()
     .withMessage('State must be a string')
     .trim(),
-    body('zip')
-    .exists({ checkFalsy: true })
-    .withMessage('Zip code is required')
-    .bail()
-    .isString()
-    .withMessage('Zip code must be a string')
-    .trim(),
     body('country')
     .exists({ checkFalsy: true })
     .withMessage('Country is required')
@@ -121,6 +120,23 @@ const addUserAddressValidation = [
     .isString()
     .withMessage('Country must be a string')
     .trim(),
+    body().custom((value, { req }) => {
+        const zipOrPincode = req.body.zip ?? req.body.pincode;
+
+        if (!zipOrPincode) {
+            throw new Error('Pin code is required');
+        }
+
+        if (!/^\d+$/.test(String(zipOrPincode).trim())) {
+            throw new Error('Pin code must be numeric');
+        }
+
+        return true;
+    }),
+    body('phone')
+    .optional()
+    .isMobilePhone('any')
+    .withMessage('Phone must be a valid phone number'),
     body('isDefault')
     .optional()
     .isBoolean()

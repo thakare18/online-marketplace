@@ -13,11 +13,9 @@ router.post('/login', validator.loginUserValidation, authController.loginUser);
 router.get('/me', authMiddleware, authController.getCurrentUser);
 router.get('/logout', authMiddleware, authController.logoutUser);
 
-router.get('/auth/users/me/addresses', authMiddleware, authController.getUserAddresses);
-
-// router.post to add user address
-router.post('/auth/users/me/addresses',validator.addUserAddressValidation, authMiddleware, authController.addUserAddress);
-
+router.get('/users/me/addresses', authMiddleware, authController.getUserAddresses);
+router.post('/users/me/addresses', validator.addUserAddressValidation, validator.responseValidationErrors, authMiddleware, authController.addUserAddress);
+router.delete('/users/me/addresses/:addressId', authMiddleware, authController.deleteUserAddress);
 
 
 module.exports = router;

@@ -154,24 +154,25 @@ async function logoutUser(req, res) {
 }
 
 async function getUserAddresses(req, res) {
+    const id = req.user.id;
 
-const id = req.user.id
+    const user = await userModel.findById(id).select('addresses');
 
-const user = await userModel.findById(id).select('addresses');
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
 
-if (!user) {
-    return res.status(404).json({ message: "User not found" });
-}
-
-return res.status(200).json({
-    message : "User addresses fetched successfully",
-    addresses: user.addresses
-})
+    return res.status(200).json({
+        message: 'User addresses fetched successfully',
+        addresses: user.addresses
+    });
 }
 
 async function addUserAddress(req, res) {
     const id = req.user.id
-    const { street, city, state, zip, country, isDefault } = req.body;
+    const { street, city, state, country, isDefault } = req.body;
+    const zip = req.body.zip ?? req.body.pincode;
+
     const user = await userModel.findOneAndUpdate({ _id: id }, {
         $push: {
             addresses: {
@@ -181,124 +182,54 @@ async function addUserAddress(req, res) {
                 zip,
                 country,
                 isDefault
+            }
         }
-    } },
-    { new: true });
+    }, { new: true });
 
     if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: 'User not found' });
     }
 
     return res.status(201).json({
-        message: "Address added successfully",
-        address: user.addresses[ user.addresses.length - 1 ]
-
+        message: 'Address added successfully',
+        address: user.addresses[user.addresses.length - 1]
     });
 }
 
+async function deleteUserAddress(req, res) {
+    const id = req.user.id
+    const { addressId } = req.params;
 
+    if (!require('mongoose').Types.ObjectId.isValid(addressId)) {
+        return res.status(400).json({ message: 'Invalid address id' });
+    }
 
-// async function getCurrentUser(req, res) {
-//     return res.status(200).json({
-//         message: "Current user fetched successfully",
-//         user: req.user
-//     });
-// }
+    const isAddressExists = await userModel.findOne({ _id: id, 'addresses._id': addressId });
+    if (!isAddressExists) {
+        return res.status(404).json({ message: 'Address not found' });
+    }
 
-// async function logoutUser(req, res) {
+    const user = await userModel.findOneAndUpdate({ _id: id }, {
+        $pull: {
+            addresses: { _id: addressId }
+        }
+    }, { new: true });
 
-//     const token = req.cookies.token;
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
 
-//     if (token) {
-//         await redis.set(`blacklist:${token}`, 'true', 'EX', 24 * 60 * 60); // expire in 1 day
-//     }
+    const addressExists = user.addresses.some(addr => addr._id.toString() === addressId);
+    if (addressExists) {
+        return res.status(500).json({ message: 'Failed to delete address' });
+    }
 
-//     res.clearCookie('token', {
-//         httpOnly: true,
-//         secure: true,
-//     });
+    return res.status(200).json({
+        message: 'Address deleted successfully',
+        addresses: user.addresses
+    });
 
-//     return res.status(200).json({ message: "Logged out successfully" });
-
-// }
-
-// async function getUserAddresses(req, res) {
-
-//     const id = req.user.id
-
-//     const user = await userModel.findById(id).select('addresses');
-
-//     if (!user) {
-//         return res.status(404).json({ message: "User not found" });
-//     }
-
-//     return res.status(200).json({
-//         message: "User addresses fetched successfully",
-//         addresses: user.addresses
-//     });
-// }
-
-// async function addUserAddress(req, res) {
-
-//     const id = req.user.id
-
-//     const { street, city, state, pincode, country, isDefault } = req.body;
-
-//     const user = await userModel.findOneAndUpdate({ _id: id }, {
-//         $push: {
-//             addresses: {
-//                 street,
-//                 city,
-//                 state,
-//                 pincode,
-//                 country,
-//                 isDefault
-//             }
-//         }
-//     }, { new: true });
-
-//     if (!user) {
-//         return res.status(404).json({ message: "User not found" });
-//     }
-
-//     return res.status(201).json({
-//         message: "Address added successfully",
-//         address: user.addresses[ user.addresses.length - 1 ]
-//     });
-// }
-
-// async function deleteUserAddress(req, res) {
-
-//     const id = req.user.id;
-//     const { addressId } = req.params;
-
-
-//     const isAddressExists = await userModel.findOne({ _id: id, 'addresses._id': addressId });
-
-
-//     if (!isAddressExists) {
-//         return res.status(404).json({ message: "Address not found" });
-//     }
-
-//     const user = await userModel.findOneAndUpdate({ _id: id }, {
-//         $pull: {
-//             addresses: { _id: addressId }
-//         }
-//     }, { new: true });
-
-//     if (!user) {
-//         return res.status(404).json({ message: "User not found" });
-//     }
-
-//     const addressExists = user.addresses.some(addr => addr._id.toString() === addressId);
-//     if (addressExists) {
-//         return res.status(500).json({ message: "Failed to delete address" });
-//     }
-
-//     return res.status(200).json({
-//         message: "Address deleted successfully",
-//         addresses: user.addresses
-//     });
+}
 
 
 
@@ -308,5 +239,6 @@ module.exports = {
     getCurrentUser,
     logoutUser,
     getUserAddresses,
-    addUserAddress
+    addUserAddress,
+    deleteUserAddress
 }
