@@ -16,7 +16,7 @@ async function createProduct(req, res) {
             currency: priceCurrency,
         };
 
-        const images = await Promise.all((req.files || []).map(file => uploadImage({ buffer: file.buffer })));
+        const images = await Promise.all((req.files || []).map(file => uploadImage({ buffer: file.buffer }))); // all images  are uploaded in parallel using Promise.all
 
 
         const product = await productModel.create({ title, description, price, seller, images });
