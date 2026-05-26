@@ -120,30 +120,30 @@ async function updateProduct(req, res) {
     return res.status(200).json({ message: 'Product updated', product });
 }
 
-// async function deleteProduct(req, res) {
+async function deleteProduct(req, res) {
 
-//     const { id } = req.params;
+    const { id } = req.params;
 
-//     if (!mongoose.Types.ObjectId.isValid(id)) {
-//         return res.status(400).json({ message: 'Invalid product id' });
-//     }
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'Invalid product id' });
+    }
 
-//     const product = await productModel.findOne({
-//         _id: id,
-//     })
+    const product = await productModel.findOne({
+        _id: id,
+    })
 
-//     if (!product) {
-//         return res.status(404).json({ message: 'Product not found' });
-//     }
+    if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+    }
 
-//     if (product.seller.toString() !== req.user.id) {
-//         return res.status(403).json({ message: 'Forbidden: You can only delete your own products' });
-//     }
+    if (product.seller.toString() !== req.user.id) {
+        return res.status(403).json({ message: 'Forbidden: You can only delete your own products' });
+    }
 
-//     await productModel.findOneAndDelete({ _id: id });
-//     return res.status(200).json({ message: 'Product deleted' });
+    await productModel.findOneAndDelete({ _id: id });
+    return res.status(200).json({ message: 'Product deleted' });
 
-// }
+}
 
 // async function getProductsBySeller(req, res) {
 
@@ -156,4 +156,4 @@ async function updateProduct(req, res) {
 //     return res.status(200).json({ data: products });
 // }
 
-module.exports = { createProduct, getProducts, getProductById, updateProduct };
+module.exports = { createProduct, getProducts, getProductById, updateProduct, deleteProduct };
