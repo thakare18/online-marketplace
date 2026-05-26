@@ -25,7 +25,7 @@ router.get('/:id', productController.getProductById);
 
 
 
-// router.patch("/:id", createAuthMiddleware([ "seller" ]), productController.updateProduct);
+router.patch("/:id", createAuthMiddleware([ "seller" ]), productController.updateProduct);
 // router.delete("/:id", createAuthMiddleware([ "seller" ]), productController.deleteProduct);
 
 
