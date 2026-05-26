@@ -20,6 +20,9 @@ router.post(
 // GET /api/products
 router.get('/', productController.getProducts)
 
+// GET /api/products/:id
+router.get('/:id', productController.getProductById);
+
 
 
 // router.patch("/:id", createAuthMiddleware([ "seller" ]), productController.updateProduct);
@@ -29,8 +32,7 @@ router.get('/', productController.getProducts)
 // router.get("/seller", createAuthMiddleware([ "seller" ]), productController.getProductsBySeller);
 
 
-// // GET /api/products/:id
-// router.get('/:id', productController.getProductById);
+
 
 
 module.exports = router;
