@@ -41,13 +41,13 @@ async function createProduct(req, res) {
 
 async function getProducts(req, res) {
 
-    const { q, minprice, maxprice, skip = 0, limit = 20 } = req.query;
+    const { q, minprice, maxprice, skip = 0, limit = 20 } = req.query; //  this all for filtering 
 
 
     const filter = {}
 
     if (q) {
-        filter.$text = { $search: q }
+        filter.$text = { $search: q } // according to mongodb snytax for text search $text and $search
     }
 
     if (minprice) {
@@ -59,7 +59,7 @@ async function getProducts(req, res) {
     }
 
     const products = await productModel.find(filter).skip(Number(skip)).limit(Math.min(Number(limit), 20));
-
+// the above line is for pagination skip and limit are used for pagination 
     return res.status(200).json({ data: products });
 
 
@@ -154,7 +154,7 @@ async function getProductsBySeller(req, res) {
 
     const { skip = 0, limit = 20 } = req.query;
 
-    const products = await productModel.find({ seller: seller.id }).skip(skip).limit(Math.min(limit, 20));
+    const products = await productModel.find({ seller: seller.id }).skip(skip).limit(Math.min(limit, 20)); // only show 20 products at a time for pagination
 
     return res.status(200).json({ data: products });
 }

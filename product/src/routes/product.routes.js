@@ -17,8 +17,8 @@ router.post(
     productController.createProduct
 );
 
-// // GET /api/products
-// router.get('/', productController.getProducts)
+// GET /api/products
+router.get('/', productController.getProducts)
 
 
 
