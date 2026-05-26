@@ -29,7 +29,7 @@ router.patch("/:id", createAuthMiddleware([ "seller" ]), productController.updat
 // DELETE /api/products/:id - only seller can delete their own products
 router.delete("/:id", createAuthMiddleware([ "seller" ]), productController.deleteProduct);
 
-//  
+// GET /api/products/seller - get products of the authenticated seller
 router.get("/seller", createAuthMiddleware([ "seller" ]), productController.getProductsBySeller);
 
 
