@@ -53,8 +53,8 @@ const registerUserValidation = [
     .bail()
     .isString()
     .withMessage('Last name must be a string')
-    .trim()
-    .body('role')
+    .trim(),
+    body('role')
     .optional()
     .isIn(['user', 'seller'])
     .withMessage('Role must be either user or seller'),

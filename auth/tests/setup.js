@@ -2,6 +2,23 @@ const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const connectDB = require('../src/db/db');
 
+// Mock Redis to prevent connection attempts during tests
+jest.mock('ioredis', () => {
+    return {
+        Redis: jest.fn().mockImplementation(() => {
+            return {
+                on: jest.fn(),
+                quit: jest.fn().mockResolvedValue('OK'),
+                get: jest.fn(),
+                set: jest.fn(),
+                del: jest.fn(),
+            };
+        }),
+    };
+});
+
+const redis = require('../src/db/redis');
+
 let mongoServer;
 
 beforeAll(async () => {
@@ -27,4 +44,6 @@ afterAll(async () => {
     if (mongoServer) {
         await mongoServer.stop();
     }
+    // Disconnect from Redis (mocked)
+    await redis.quit();
 });
