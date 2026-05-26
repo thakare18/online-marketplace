@@ -1,16 +1,14 @@
 const express = require('express');
-const upload = require('../middleware/multer.middleware');
-const { createProduct, getProducts, getProductById } = require('../controllers/product.controller');
+const multer = require('multer');
+const productController = require('../controllers/product.controller');
+const createAuthMiddleware = require('../middleware/auth.middleware');
+
 
 const router = express.Router();
 
-// POST - Create a new product with image upload
-router.post('/', upload.single('image'), createProduct);
+const upload = multer({ storage: multer.memoryStorage() });
 
-// GET - Get all products
-router.get('/', getProducts);
-
-// GET - Get product by ID
-router.get('/:id', getProductById);
+// post /api/products
+router.post('/', createAuthMiddleware([ 'admin', 'seller' ]),upload.array('images', 5), productController.createProduct);
 
 module.exports = router;
