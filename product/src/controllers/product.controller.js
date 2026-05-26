@@ -145,15 +145,15 @@ async function deleteProduct(req, res) {
 
 }
 
-// async function getProductsBySeller(req, res) {
+async function getProductsBySeller(req, res) {
 
-//     const seller = req.user
+    const seller = req.user
 
-//     const { skip = 0, limit = 20 } = req.query;
+    const { skip = 0, limit = 20 } = req.query; 
 
-//     const products = await productModel.find({ seller: seller.id }).skip(skip).limit(Math.min(limit, 20)); // only show 20 products at a time for pagination
+    const products = await productModel.find({ seller: seller.id }).skip(skip).limit(Math.min(limit, 20)); // only show 20 products at a time for pagination
 
-//     return res.status(200).json({ data: products });
-// }
+    return res.status(200).json({ data: products });
+}
 
-module.exports = { createProduct, getProducts, getProductById, updateProduct, deleteProduct };
+module.exports = { createProduct, getProducts, getProductById, updateProduct, deleteProduct, getProductsBySeller };

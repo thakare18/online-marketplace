@@ -20,8 +20,7 @@ router.post(
 // GET /api/products
 router.get('/', productController.getProducts)
 
-// GET /api/products/:id
-router.get('/:id', productController.getProductById);
+
 
 
 // PATCH /api/products/:id - only seller can update their own products
@@ -30,8 +29,12 @@ router.patch("/:id", createAuthMiddleware([ "seller" ]), productController.updat
 // DELETE /api/products/:id - only seller can delete their own products
 router.delete("/:id", createAuthMiddleware([ "seller" ]), productController.deleteProduct);
 
+//  
+router.get("/seller", createAuthMiddleware([ "seller" ]), productController.getProductsBySeller);
 
-// router.get("/seller", createAuthMiddleware([ "seller" ]), productController.getProductsBySeller);
+
+// GET /api/products/:id
+router.get('/:id', productController.getProductById);
 
 
 
