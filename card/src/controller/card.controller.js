@@ -1,5 +1,29 @@
 const cardmodel = require('../models/card.model.js');
 
+async function getCart(req, res) {
+  const user = req.user;
+  const userId = user?._id || user?.id;
+
+  if (!userId) {
+    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+  }
+
+  let card = await cardmodel.findOne({ user: userId });
+
+  if (!card) {
+    card = await cardmodel.create({ user: userId, items: [] });
+  }
+
+  return res.status(200).json({
+    cart: card,
+    totals: {
+      itemCount: card.items.length,
+      totalQuantity: card.items.reduce((sum, item) => sum + item.quantity, 0)
+    }
+  });
+}
+
+
 async function addItemToCard(req, res) {
 
   const { productId, qty } = req.body;
@@ -37,11 +61,6 @@ async function addItemToCard(req, res) {
 }
 
 
-module.exports = {
-  addItemToCard,
-  updateItemQuantity
-}
-
 async function updateItemQuantity(req, res) {
   const { productId } = req.params;
   const { qty } = req.body;
@@ -72,4 +91,11 @@ async function updateItemQuantity(req, res) {
     message: 'Item updated',
     cart: card
   });
+}
+
+
+module.exports = {
+  addItemToCard,
+  updateItemQuantity,
+    getCart
 }

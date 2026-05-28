@@ -6,8 +6,12 @@ const cardController = require('../controller/card.controller');
 const validation = require('../middleware/validator.middleware');
 
 
-
 const router = express.Router();
+
+router.get('/',
+    createAuthMiddleware([ 'user' ]),
+    cardController.getCart
+);
 
 
 router.post("/items",validation.validateAddItemToCard 
@@ -20,6 +24,9 @@ router.patch(
     createAuthMiddleware([ 'user' ]),
     cardController.updateItemQuantity
 );    
+
+
+
 
 
 
