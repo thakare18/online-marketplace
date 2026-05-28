@@ -1,15 +1,16 @@
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
-const app = require('../src/app');
 
-// Mock the cart model
-jest.mock('../src/models/cart.model.js', () => {
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+
+// Mock the card model before app/controller are loaded
+jest.mock('../src/models/card.model.js', () => {
     // helper inside factory to avoid out-of-scope reference restriction
     function mockGenerateObjectId() {
         return Array.from({ length: 24 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
     }
     const carts = new Map();
-    class CartMock {
+    class CardMock {
         constructor({ user, items }) {
             this._id = mockGenerateObjectId();
             this.user = user;
@@ -18,16 +19,22 @@ jest.mock('../src/models/cart.model.js', () => {
         static async findOne(query) {
             return carts.get(query.user) || null;
         }
+        static async create(data) {
+            const card = new CardMock(data);
+            carts.set(card.user, card);
+            return card;
+        }
         async save() {
             carts.set(this.user, this);
             return this;
         }
     }
-    CartMock.__reset = () => carts.clear();
-    return CartMock;
+    CardMock.__reset = () => carts.clear();
+    return CardMock;
 });
 
-const CartModel = require('../src/models/cart.model.js');
+const CardModel = require('../src/models/card.model.js');
+const app = require('../src/app');
 
 function generateObjectId() {
     return Array.from({ length: 24 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
@@ -37,14 +44,14 @@ function signToken(payload) {
     return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 }
 
-const endpoint = '/api/cart/items';
+const endpoint = '/api/cards/items';
 
-describe('POST /api/cart/items', () => {
+describe('POST /api/cards/items', () => {
     const userId = generateObjectId();
     const productId = generateObjectId();
 
     beforeEach(() => {
-        CartModel.__reset();
+        CardModel.__reset();
     });
 
     test('creates new cart and adds first item', async () => {
