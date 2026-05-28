@@ -1,13 +1,14 @@
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
-const app = require('../src/app');
 
-jest.mock('../src/models/cart.model.js', () => {
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
+
+jest.mock('../src/models/card.model.js', () => {
     function mockGenerateObjectId() {
         return Array.from({ length: 24 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
     }
     const carts = new Map();
-    class CartMock {
+    class CardMock {
         constructor({ user, items }) {
             this._id = mockGenerateObjectId();
             this.user = user;
@@ -16,16 +17,22 @@ jest.mock('../src/models/cart.model.js', () => {
         static async findOne(query) {
             return carts.get(query.user) || null;
         }
+        static async create(data) {
+            const card = new CardMock(data);
+            carts.set(card.user, card);
+            return card;
+        }
         async save() {
             carts.set(this.user, this);
             return this;
         }
     }
-    CartMock.__reset = () => carts.clear();
-    return CartMock;
+    CardMock.__reset = () => carts.clear();
+    return CardMock;
 });
 
-const CartModel = require('../src/models/cart.model.js');
+const CardModel = require('../src/models/card.model.js');
+const app = require('../src/app');
 
 function generateObjectId() {
     return Array.from({ length: 24 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
@@ -34,8 +41,8 @@ function signToken(payload) {
     return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 }
 
-const postEndpoint = '/api/cart/items';
-const patchBase = '/api/cart/items';
+const postEndpoint = '/api/cards/items';
+const patchBase = '/api/cards/items';
 
 describe('PATCH /api/cart/items/:productId', () => {
     const userId = generateObjectId();
@@ -43,11 +50,11 @@ describe('PATCH /api/cart/items/:productId', () => {
     const otherProductId = generateObjectId();
 
     beforeEach(() => {
-        CartModel.__reset();
+        CardModel.__reset();
     });
 
     test('updates quantity of existing item', async () => {
-        const token = signToken({ _id: userId, role: 'user' });
+        const token = signToken({ id: userId, role: 'user' });
         // create cart + item
         await request(app)
             .post(postEndpoint)
@@ -65,7 +72,7 @@ describe('PATCH /api/cart/items/:productId', () => {
     });
 
     test('404 when cart not found', async () => {
-        const token = signToken({ _id: userId, role: 'user' });
+        const token = signToken({ id: userId, role: 'user' });
         const res = await request(app)
             .patch(`${patchBase}/${existingProductId}`)
             .set('Authorization', `Bearer ${token}`)
@@ -75,7 +82,7 @@ describe('PATCH /api/cart/items/:productId', () => {
     });
 
     test('404 when item not in cart', async () => {
-        const token = signToken({ _id: userId, role: 'user' });
+        const token = signToken({ id: userId, role: 'user' });
         await request(app)
             .post(postEndpoint)
             .set('Authorization', `Bearer ${token}`)
@@ -91,7 +98,7 @@ describe('PATCH /api/cart/items/:productId', () => {
     });
 
     test('validation error invalid productId param', async () => {
-        const token = signToken({ _id: userId, role: 'user' });
+        const token = signToken({ id: userId, role: 'user' });
         const res = await request(app)
             .patch(`${patchBase}/not-a-valid-id`)
             .set('Authorization', `Bearer ${token}`)
@@ -101,7 +108,7 @@ describe('PATCH /api/cart/items/:productId', () => {
     });
 
     test('validation error invalid qty', async () => {
-        const token = signToken({ _id: userId, role: 'user' });
+        const token = signToken({ id: userId, role: 'user' });
         await request(app)
             .post(postEndpoint)
             .set('Authorization', `Bearer ${token}`)
@@ -124,7 +131,7 @@ describe('PATCH /api/cart/items/:productId', () => {
     });
 
     test('403 when role not allowed', async () => {
-        const token = signToken({ _id: userId, role: 'admin' });
+        const token = signToken({ id: userId, role: 'admin' });
         const res = await request(app)
             .patch(`${patchBase}/${existingProductId}`)
             .set('Authorization', `Bearer ${token}`)

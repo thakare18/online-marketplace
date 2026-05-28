@@ -14,6 +14,13 @@ router.post("/items",validation.validateAddItemToCard
     ,createAuthMiddleware(["user"]), 
     cardController.addItemToCard);
 
+router.patch(
+    '/items/:productId',
+    validation.validateUpdateCartItem,
+    createAuthMiddleware([ 'user' ]),
+    cardController.updateItemQuantity
+);    
+
 
 
 module.exports = router;
