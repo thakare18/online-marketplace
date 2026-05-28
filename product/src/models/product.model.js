@@ -22,7 +22,12 @@ const productSchema = new mongoose.Schema({
             tumbnail : String,
             id : String
         }
-    ]
+    ],
+    stock : 
+    {
+        type : Number,
+        default : 0
+    }
     
 })
 
