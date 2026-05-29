@@ -15,14 +15,17 @@ async function createOrder(req,res){
             }
 
         })
-        console.log("Card service response:", cardResponse.data.items );
-        const items = cardResponse.data?.cart?.items || cardResponse.data?.items || cardResponse.data?.card?.items || cardResponse.data?.data?.items;
-        console.log("Card items:", items);
-        if (Array.isArray(items)) {
-            items.forEach((item, index) => {
-                console.log(`Card item ${index + 1}:`, item);
-            });
-        }
+        const products = await Promise.all(cardResponse.data.cart.items.map(async (item) => {
+            // Fetch product details from product service
+            const productResponse = await axios.get(`http://localhost:3001/api/products/${item.productId}`,{
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            return productResponse.data
+        }))
+
+        console.log("Fetched product details:", products)
     }
     catch(err){
         console.error("Error fetching card details:", err.message);
