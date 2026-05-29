@@ -24,7 +24,35 @@ async function createOrder(req,res){
             })).data.product;
         }))
 
-        console.log("Fetched product :", products)
+        let priceAmount = 0;
+
+
+        const orderItems = cardResponse.data.cart.items.map((item, index) => {
+
+
+            const product = products.find(p => p._id === item.productId);
+
+            // if not in stock , them does not allow to order creation
+
+            if(product.stock < item.quantity){ // stock is less than quantity in cart if true then throw error product is out of stock
+
+                throw new Error(`Product ${product.name} is out of stock`);
+            }
+
+
+            const itemTotal = product.price.amount * item.quantity;
+            priceAmount += itemTotal;
+            return {
+                product: item.productId,
+                quantity: item.quantity,
+                price: {
+                    amount: itemTotal,
+                    currency: product.price.currency
+                }
+            }
+        })
+        console.log("Total Price Amount:", priceAmount);
+        console.log(orderItems);
     }
     catch(err){
         console.error("Error fetching card details:", err.message);
