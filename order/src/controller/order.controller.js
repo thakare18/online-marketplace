@@ -17,15 +17,14 @@ async function createOrder(req,res){
         })
         const products = await Promise.all(cardResponse.data.cart.items.map(async (item) => {
             // Fetch product details from product service
-            const productResponse = await axios.get(`http://localhost:3001/api/products/${item.productId}`,{
+            return (await axios.get(`http://localhost:3001/api/products/${item.productId}`,{
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
-            })
-            return productResponse.data
+            })).data.product;
         }))
 
-        console.log("Fetched product details:", products)
+        console.log("Fetched product :", products)
     }
     catch(err){
         console.error("Error fetching card details:", err.message);
