@@ -9,7 +9,10 @@ router.post("/",authMiddleware(), validation.createOrderValidation, orderControl
 
 router.get("/me",authMiddleware(), orderController.getMyOrders); 
 
+router.post("/:id/cancel", authMiddleware(["user"]), orderController.cancelOrderById);
+
 router.get("/:id",authMiddleware(["user", "admin"]), orderController.getOrderById);
+
 
 
 module.exports = router;
