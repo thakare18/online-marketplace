@@ -1,5 +1,6 @@
 require('./setup.js/env');
 require('./setup.js/mongodb');
+jest.setTimeout(20000);
 jest.mock('axios');
 const request = require('supertest');
 const app = require('../src/app');

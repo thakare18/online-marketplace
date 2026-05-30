@@ -98,9 +98,33 @@ async function getMyOrders(req, res) {
         res.status(500).json({ message: "Internal server error", error: err.message })
     }
 }
+ 
+async function getOrderById(req, res) {
+    const user = req.user;
+    const orderId = req.params.id;
+
+    try {
+        const order = await orderModel.findById(orderId)
+
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        if (order.user.toString() !== user.id){
+            return res.status(403).json({ message: "Forbidden: You don't have access to this order" });
+        }
+    }
+        catch (err) {
+        res.status(500).json({ message: "Internal server error", error: err.message })
+    }
+
+}
+
+
 
 module.exports = {
     createOrder,
-    getMyOrders
+    getMyOrders,
+    getOrderById
 
 };

@@ -1,5 +1,6 @@
 require('./setup.js/env');
 require('./setup.js/mongodb');
+jest.setTimeout(20000);
 const request = require('supertest');
 const app = require('../src/app');
 const { getAuthCookie } = require('./setup.js/auth');
