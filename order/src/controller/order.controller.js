@@ -75,6 +75,32 @@ async function createOrder(req, res) {
     }
 }
 
+async function getMyOrders(req, res) {
+    const user = req.user;
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    try {
+        const orders = await orderModel.find({ user: user.id }).skip(skip).limit(limit).exec();
+        const totalOrders = await orderModel.countDocuments({ user: user.id });
+
+        res.status(200).json({
+            orders,
+            meta: {
+                total: totalOrders,
+                page,
+                limit
+            }
+        })
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error", error: err.message })
+    }
+}
+
 module.exports = {
-    createOrder
+    createOrder,
+    getMyOrders
+
 };

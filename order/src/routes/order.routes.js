@@ -5,7 +5,9 @@ const validation = require("../middleware/validation.middleware");
 
 const router = express.Router();
 
-router.post("/", authMiddleware, validation.createOrderValidation, orderController.createOrder);
+router.post("/",authMiddleware, validation.createOrderValidation, orderController.createOrder);
+
+router.get("/me",authMiddleware, orderController.getMyOrders); 
 
 
 module.exports = router;

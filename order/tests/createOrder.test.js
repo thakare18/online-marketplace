@@ -1,6 +1,10 @@
+require('./setup.js/env');
+require('./setup.js/mongodb');
+jest.mock('axios');
 const request = require('supertest');
-const app = require('../../src/app');
-const { getAuthCookie } = require('../setup/auth');
+const app = require('../src/app');
+const { getAuthCookie } = require('./setup.js/auth');
+const axios = require('axios');
 
 
 describe('POST /api/orders — Create order from current cart', () => {
@@ -11,6 +15,39 @@ describe('POST /api/orders — Create order from current cart', () => {
         pincode: '90210',
         country: 'USA',
     };
+    const sampleProductId = '6a1593b4bbfe68f0eba8f71b';
+
+    beforeEach(() => {
+        axios.get.mockReset();
+        axios.get.mockImplementation((url) => {
+            if (url.includes('/api/cards')) {
+                return Promise.resolve({
+                    data: {
+                        cart: {
+                            items: [
+                                { productId: sampleProductId, quantity: 2 }
+                            ]
+                        }
+                    }
+                });
+            }
+
+            if (url.includes(`/api/products/${sampleProductId}`)) {
+                return Promise.resolve({
+                    data: {
+                        product: {
+                            _id: sampleProductId,
+                            name: 'test_title',
+                            price: { amount: 1000, currency: 'INR' },
+                            stock: 10
+                        }
+                    }
+                });
+            }
+
+            return Promise.reject(new Error(`Unexpected axios url: ${url}`));
+        });
+    });
 
     it('creates order from current cart, computes totals, sets status=PENDING, reserves inventory', async () => {
         // Example: Provide any inputs the API expects (headers/cookies/body). Adjust when auth is wired.
