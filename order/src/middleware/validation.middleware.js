@@ -43,7 +43,7 @@ const createOrderValidation = [
 ]
 
 
-const updateAddressValidation = [
+const updateAddressValidation = [ // same validation rules as createOrder for the shippingAddress fields
     body('shippingAddress.street')
         .isString()
         .withMessage('Street must be a string')

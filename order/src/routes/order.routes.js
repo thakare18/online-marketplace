@@ -5,9 +5,9 @@ const validation = require("../middleware/validation.middleware");
 
 const router = express.Router();
 
-router.post("/",authMiddleware(), validation.createOrderValidation, orderController.createOrder);
+router.post("/",authMiddleware([ "user" ]), validation.createOrderValidation, orderController.createOrder);
 
-router.get("/me",authMiddleware(), orderController.getMyOrders); 
+router.get("/me",authMiddleware([ "user" ]), orderController.getMyOrders); 
 
 router.post("/:id/cancel", authMiddleware(["user"]), orderController.cancelOrderById);
 
