@@ -1,4 +1,13 @@
 const paymentModel = require('../models/payment.model');
+const axios = require('axios');
+
+require('dotenv').config();
+const Razorpay = require('razorpay');
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 async function createPayment(req, res) {
     const token = req.cookies?.token || req.headers?.authorization?.split(' ')[ 1 ];
@@ -6,14 +15,28 @@ async function createPayment(req, res) {
     try{
         const orderId = req.params.orderId;
 
-        const orderResponse = await fetch(`http://localhost:3002/api/orders/` + orderId, {
+        const orderResponse = await axios.get(`http://localhost:3003/api/orders/${orderId}`, {
             headers : {
                 Authorization : `Bearer ${token}`,
 
             }
         })
 
-        console.log(orderResponse.data);
+          const price =  orderResponse.formData.order.totalPrice;
+
+          const order = await razorpay.orders.create(price);
+
+          const payment = new paymentModel.create({
+            order : orderId, // order id from order service (application)
+            razorpayOrderId : order.id, // razorpay order id
+            user : req.user.id,
+            price : {
+                amount : price.amount,
+                currency : price.currency
+            }
+          })
+
+          res.status(201).json({ message : 'Payment initiated successfully', payment });
 
         
 
