@@ -50,7 +50,43 @@ async function createPayment(req, res) {
 }
 
 
+async function verifyPayment(req, res) {
+
+    const { razorpayOrderId, paymentId, signature } = req.body;
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+
+    try{
+
+         const { validatePaymentVerification } = require('../../node_modules/razorpay/dist/utils/razorpay-utils.js')
+
+            const isValid = validatePaymentVerification({  order_id: razorpayOrderId, payment_id: paymentId }, signature, secret);
+            if (!isValid) {
+                return res.status(400).json({ message: 'Invalid payment signature' });
+            }
+
+            const payment = await paymentModel.findOne({ razorpayOrderId,status : 'PENDING' });
+
+            if (!payment) {
+                return res.status(404).json({ message: 'Payment not found' });
+            }
+             payment.paymentId = paymentId;
+             payment.signature = signature;
+             payment.status = 'COMPLETED';
+
+                await payment.save();
+
+            res.status(200).json({ message: 'Payment verified successfully', payment });
+
+    }
+    catch(err) {
+        console.error('Error verifying payment:', err);
+        res.status(500).json({message: 'Internal server error' });
+    }
+
+}
+
 
 module.exports = {
-    createPayment
+    createPayment,
+    verifyPayment,
  };
