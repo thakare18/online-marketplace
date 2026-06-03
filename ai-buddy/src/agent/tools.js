@@ -23,3 +23,30 @@ const searchProducts = tool(
     
     } )
 );
+
+const addProductToCart = tool(async ({productId, qty=1, token})=>{
+
+    const response = await axios.post(`http://localhost:3002/api/cart/items`,{
+        productId,
+        qty
+    },{
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
+    return `Added product with id ${productId} (qty: ${qty}) to cart successfully`
+
+},
+{
+    name: "addProductToCart",
+    description: "add a product to shopping cart",
+    inputSchema: z.object({
+        productId: z.string().describe("id of the product to added to the cart"),
+        qty: z.number().describe("the quantity of the product to add to the cart").default(1),
+    })
+})
+
+module.exports = {
+    searchProducts,
+    addProductToCart
+}
