@@ -1,17 +1,16 @@
-const { server } = require("socket.io");
+const { Server } = require("socket.io");
 const jwt = require('jsonwebtoken');
 const cookie = require('cookie');
 
 
 async function initSocketServer(httpServer) {
 
-    const io = new server(httpServer, {});
+    const io = new Server(httpServer, {});
 
 
     io.use((socket, next) => {
-        const cookies = cookie.parse(socket.handshake.headers.cookie);
-
-        const { token } = cookie ? cookie.parse(cookies) : {};
+        const cookies = cookie.parse(socket.handshake.headers.cookie || '');
+        const { token } = cookies;
 
         if (!token) {
             return next(new Error('token Not provided'));
