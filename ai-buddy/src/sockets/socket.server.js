@@ -28,6 +28,7 @@ async function initSocketServer(httpServer) {
 
 
     io.on('connection', (socket) => {
+        console.log(socket.user);
         console.log('A user connected');
     });
 

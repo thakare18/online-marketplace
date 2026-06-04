@@ -1,6 +1,6 @@
 const { StateGraph, messageAnnotations } = require('./@lanchain/langgraph');
 const { ChatGoogleGenerativeAI } = require('@lanchain/google-genai');
-const {ToolsMessage} = require('@lanchain/core/messages');
+const {ToolsMessage,AIMessage,HumanMessage} = require('@lanchain/core/messages');
 const tools = require('./tools');
 
 
@@ -31,3 +31,30 @@ const graph = new StateGraph(MessageAnnotations)
     return state
 
 })
+
+.addNode("chat", async (state, config) => {
+        const response = await model.invoke(state.messages, { tools: [ tools.searchProduct, tools.addProductToCart ] })
+
+
+        state.messages.push(new AIMessage({ content: response.text, tool_calls: response.tool_calls }))
+
+        return state
+
+})
+.addEdge("__start__", "chat")
+.addConditionalEdge("chat",  async (state) => {
+    const lastMessage = state.messages[state.messages.length - 1]
+    if (lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
+        return "tools"
+    }
+    else {
+        return "__end__"
+    }
+})
+.addEdge("tools", "chat") 
+
+
+const agent = graph.compile()
+
+module.exports = agent
+// step to add the edge between the nodes
