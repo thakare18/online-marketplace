@@ -43,7 +43,7 @@ const addProductToCart = tool(async ({productId, qty=1, token})=>{
 {
     name: "addProductToCart",
     description: "add a product to shopping cart",
-    inputSchema: z.object({
+    schema: z.object({
         productId: z.string().describe("id of the product to added to the cart"),
         qty: z.number().describe("the quantity of the product to add to the cart").default(1),
     })

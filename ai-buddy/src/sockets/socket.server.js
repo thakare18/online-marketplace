@@ -51,7 +51,9 @@ async function initSocketServer(httpServer) {
             }
         );
 
-        console.log("Agent response:", agentResponse);
+        const lastMessage = agentResponse.messages[ agentResponse.messages.length - 1 ]
+
+        socket.emit('message', lastMessage.content)
     });
 
 });

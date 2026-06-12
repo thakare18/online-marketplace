@@ -25,9 +25,11 @@ const graph = new StateGraph(MessagesAnnotation)
             }
             const toolInput = call.args
 
-            console.log("Invoking tool:", call.name, "with input:", call)
+            console.log("Invoking tool:", call.name, "with input:", call,config.metadata.token)
 
-            const toolResult = await tool.func({ ...toolInput, token: config.metadata.token })
+           
+
+            const toolResult = await tool.func( toolInput, {token: config.metadata.token })
 
             return new ToolMessage({ content: toolResult, name: call.name })
 
