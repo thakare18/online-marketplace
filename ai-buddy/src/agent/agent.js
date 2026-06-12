@@ -1,38 +1,43 @@
-const { StateGraph, messageAnnotations } = require('./@lanchain/langgraph');
-const { ChatGoogleGenerativeAI } = require('@lanchain/google-genai');
-const {ToolsMessage,AIMessage,HumanMessage} = require('@lanchain/core/messages');
-const tools = require('./tools');
+const { StateGraph, MessagesAnnotation } = require("@langchain/langgraph")
+const { ChatGoogleGenerativeAI } = require("@langchain/google-genai")
+const { ToolMessage, AIMessage, HumanMessage } = require("@langchain/core/messages")
+const tools = require("./tools")    
 
 
 const model = new ChatGoogleGenerativeAI({
-    model: 'gemini-2.0-flash',
-    temperature: 0.5, // less value means more deterministic output
+    model: "gemini-2.0-flash", 
+    temperature: 0.5,
 })
 
-const graph = new StateGraph(MessageAnnotations)
-.addNode('tools', async (state,config) => {
-    const lastMessage = state.messages[state.messages.length - 1]
 
-    const toolCalls = lastMessage.tool_calls
+const graph = new StateGraph(MessagesAnnotation)
+    .addNode("tools", async (state, config) => {
 
-    const toolCallResults = await Promise.all(toolsCalls.map(async (call) => {
-        const tool = tools[call.name]
-        if (!tool) {
-            throw new Error(`Tool ${call.name} not found`)
-        }
-        const toolInput = call.args
+        const lastMessage = state.messages[ state.messages.length - 1 ]
 
-        const toolResult = await tool.invoke({ ...toolInput, token: config.metadata.token })
+        const toolsCall = lastMessage.tool_calls
 
-        return new ToolMessage({  content: toolResult,toolName: call.name})
-    }))
+        const toolCallResults = await Promise.all(toolsCall.map(async (call) => {
 
-    state.messages.push(...toolCallResults)
-    return state
+            const tool = tools[ call.name ]
+            if (!tool) {
+                throw new Error(`Tool ${call.name} not found`)
+            }
+            const toolInput = call.args
 
-})
+            console.log("Invoking tool:", call.name, "with input:", call)
 
-.addNode("chat", async (state, config) => {
+            const toolResult = await tool.func({ ...toolInput, token: config.metadata.token })
+
+            return new ToolMessage({ content: toolResult, name: call.name })
+
+        }))
+
+        state.messages.push(...toolCallResults)
+
+        return state
+    })
+    .addNode("chat", async (state, config) => {
         const response = await model.invoke(state.messages, { tools: [ tools.searchProduct, tools.addProductToCart ] })
 
 
@@ -40,21 +45,30 @@ const graph = new StateGraph(MessageAnnotations)
 
         return state
 
-})
-.addEdge("__start__", "chat")
-.addConditionalEdge("chat",  async (state) => {
-    const lastMessage = state.messages[state.messages.length - 1]
-    if (lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
-        return "tools"
-    }
-    else {
-        return "__end__"
-    }
-})
-.addEdge("tools", "chat") 
+    })
+    .addEdge("__start__", "chat")
+    .addConditionalEdges("chat", async (state) => {
+
+        const lastMessage = state.messages[ state.messages.length - 1 ]
+
+        if (lastMessage.tool_calls && lastMessage.tool_calls.length > 0) {
+            return "tools"
+        } else {
+            return "__end__"
+        }
+
+    })
+    .addEdge("tools", "chat")
+
 
 
 const agent = graph.compile()
 
+
 module.exports = agent
-// step to add the edge between the nodes
+
+
+
+
+
+

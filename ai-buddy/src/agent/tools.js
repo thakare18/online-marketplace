@@ -34,7 +34,7 @@ const addProductToCart = tool(async ({productId, qty=1, token})=>{
             Authorization: `Bearer ${token}`
         }
     })
-    return `Added product with id ${productId} (qty: ${qty}) to cart successfully`
+    return `Added product with id ${productId} (qty: ${qty}) to cart `
 
 },
 {
