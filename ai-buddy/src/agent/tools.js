@@ -3,7 +3,10 @@ const { z } = require("zod");
 const axios = require("axios");
 
 const searchProducts = tool(
-    async ( async  (data) => {
+    async ( async  ({query, token}) => {
+
+        console.log("searchProducts called with data :", {query, token})
+
         const response = await axios.get(`http://localhost:3001/api/products?q=${data.query}`,{
             headers: {
                 Authorization: `Bearer ${token}`
