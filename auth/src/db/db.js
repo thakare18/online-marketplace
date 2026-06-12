@@ -9,7 +9,13 @@ async function connectDB(uri = process.env.MONGO_URI || process.env.MONGO_URL) {
     }
 
     try {
-        await mongoose.connect(uri);
+        const allowInsecureTls = String(process.env.MONGO_TLS_INSECURE || '').toLowerCase() === 'true';
+
+        await mongoose.connect(uri, {
+            serverSelectionTimeoutMS: 10000,
+            tls: true,
+            tlsAllowInvalidCertificates: allowInsecureTls
+        });
         console.log("Database connected successfully");
     }
 
