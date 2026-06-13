@@ -1,4 +1,4 @@
-require('dotenv').config();
+
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({ // trnsporter is used to send email
