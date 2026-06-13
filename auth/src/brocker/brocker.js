@@ -11,6 +11,7 @@ async function connect(){ // thet connect channel and connection to rabbitmq
         connection = await amqplib.connect(process.env.RABBIT_URL);
         console.log("Connected to RabbitMQ");
         channel = await connection.createChannel();
+        return connection;
     }
     catch (error) {
         console.error("Error connecting to RabbitMQ", error);
