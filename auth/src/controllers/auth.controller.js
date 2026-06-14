@@ -2,6 +2,7 @@ const userModel = require('../models/user.model');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const redis = require('../db/redis');
+const { publishToQueue } = require('../brocker/brocker'); // for publish messages to rabbitmq queue
 
 
 
@@ -32,6 +33,14 @@ async function registerUser(req, res) {
             fullName: { firstName, lastName },
             role: role || 'user' // default role is 'user'
         })
+
+        await publishToQueue('AUTH_NOTIFICATION.USER_CREATED', { // publish message to rabbitmq queue for notification service
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            fullName: user.fullName,
+
+        });
 
 
         // await Promise.all([
