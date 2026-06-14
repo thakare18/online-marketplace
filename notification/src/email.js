@@ -40,6 +40,6 @@ const sendEmail = async (to, subject, text, html) => {
   }
 };
 
-sendEmail('prathamthackeray18@gmail.com', 'Test Email', 'This product add to cart notification testing', '<p>This is a <b>test email</b> sent using Nodemailer with OAuth2 authentication.</p>');
+
 
 module.exports = sendEmail;
