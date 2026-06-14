@@ -1,4 +1,4 @@
-const  subscribeToQueue  = require("./broker/broker")
+const  subscribeToQueue  = require("./broker")
 
 
 

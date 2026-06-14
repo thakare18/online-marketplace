@@ -3,7 +3,7 @@ const app = require('./src/app');
 
 const connectDB = require('./src/db/db');
 const listener = require('./src/broker/listener');
-const connect = require('./src/broker/broker')
+const { connect } = require('./src/broker/broker')
 
 
 connectDB();
