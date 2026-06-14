@@ -1,7 +1,7 @@
 const productModel = require('../models/product.model');
 const { uploadImage } = require('../../services/imagekit.service');
 const mongoose = require('mongoose');
-const { publishToQueue } = require("../broker/borker")
+const { publishToQueue } = require("../broker/broker")
 
 
 
