@@ -82,6 +82,7 @@ async function verifyPayment(req, res) {
                      paymentId : payment._id,
                      amount : payment.price.amount / 100, // convert to rupees 
                      currency : payment.price.currency,
+                    fullName : req.user.fullName,
                 })
 
             res.status(200).json({ message: 'Payment verified successfully', payment });
