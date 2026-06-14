@@ -1,5 +1,6 @@
 const paymentModel = require('../models/payment.model');
 const axios = require('axios');
+const publishToQueue = require('../broker/broker');
 
 require('dotenv').config();
 const Razorpay = require('razorpay');
@@ -75,10 +76,32 @@ async function verifyPayment(req, res) {
 
                 await payment.save();
 
+                await publishToQueue("PAYMENT_NOTIFICATION.PAYMENT_COMPLETED", {
+                   email : req.user.email,
+                     orderId : payment.order,
+                     paymentId : payment._id,
+                     amount : payment.price.amount / 100, // convert to rupees 
+                     currency : payment.price.currency,
+                })
+
             res.status(200).json({ message: 'Payment verified successfully', payment });
 
     }
     catch(err) {
+        //if payment invalid
+
+        await  publishToQueue("PAYMENT_NOTIFICATION.PAYMENT_FAILED", {
+           
+            email : req.user.email,
+            paymentId : payment._id,
+                orderId : razorpayOrderId,
+                fullName : req.user.fullName,
+        }
+            )
+
+
+
+
         console.error('Error verifying payment:', err);
         res.status(500).json({message: 'Internal server error' });
     }

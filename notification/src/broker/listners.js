@@ -8,7 +8,7 @@ module.exports = function () {
         <h1>Welcome to our platform!</h1>
         <p>Dear ${data.fullName.firstName + " " + ( data.fullName.lastName || "" ) },</p>
         <p>Thank you for signing up. We're excited to have you on board!</p>
-        <p>Best regards,</p>.</br>the Team </p> 
+        <p>Best regards,</p></br>the Team </p> 
         `;
 
         await sendEmail(data.email, "Welcome to our Service!", "Thank you for registering with us!", emailHTMLTemplate); 
