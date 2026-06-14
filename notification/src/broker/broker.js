@@ -44,7 +44,7 @@ async function subscribeToQueue(queueName, callback) {
     });
 
     channel.consume(queueName, async (data) => {
-        if (msg !== null) {
+        if (data !== null) {
             const message = JSON.parse(data.content.toString()); // convert the message from buffer format to json format
           await  callback(message);
             channel.ack(data); // acknowledge the message after processing it
