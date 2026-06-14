@@ -34,26 +34,18 @@ async function registerUser(req, res) {
             role: role || 'user' // default role is 'user'
         })
 
-        await publishToQueue('AUTH_NOTIFICATION.USER_CREATED', { // publish message to rabbitmq queue for notification service
-            id: user._id,
-            username: user.username,
-            email: user.email,
-            fullName: user.fullName,
-            
+       
 
 
-        });
-
-
-        // await Promise.all([
-        //     publishToQueue('AUTH_NOTIFICATION.USER_CREATED', {
-        //         id: user._id,
-        //         username: user.username,
-        //         email: user.email,
-        //         fullName: user.fullName,
-        //     }),
-        //     publishToQueue("AUTH_SELLER_DASHBOARD.USER_CREATED", user)
-        // ]);
+        await Promise.all([
+            publishToQueue('AUTH_NOTIFICATION.USER_CREATED', { // publish message to rabbitmq queue for notification service
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                fullName: user.fullName,
+            }),
+            publishToQueue("AUTH_SELLER_DASHBOARD.USER_CREATED", user) // publish message to rabbitmq queue for seller dashboard service
+        ]);
 
         const token = jwt.sign({
             id: user._id,
