@@ -7,6 +7,11 @@ app.use(express.json());
 app.use(cookieParser());
 
 
+//health check endpoint
+app.get('/', (req, res) => {
+	res.status(200).json({ message: 'Cart service is running' });
+});
+
 app.use('/api/cards', cardRoutes); //prefix for all card related routes
 
 // Surface async route errors (Express 5 will forward rejected promises here)
