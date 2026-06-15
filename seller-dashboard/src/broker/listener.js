@@ -13,7 +13,7 @@ module.exports = async function listenForEvents() {
         await userModel.create(user);
     });
 
-    await subscribeToQueue("AUTH_SELLER_DASHBOARD.PRODUCT_CREATED", async (product) => {
+    await subscribeToQueue("PRODUCT_SELLER_DASHBOARD.PRODUCT_CREATED", async (product) => {
         // Handle product created event, if product is created by seller then that replicate on seller-dashboard
         await productModel.create(product);
     });
@@ -23,7 +23,7 @@ module.exports = async function listenForEvents() {
         await orderModel.create(order);
     });
 
-    await subscribeToQueue("PAYMENT_SELLER_DASHBOARD.PAYMENT_COMPLETED", async (payment) => {
+    await subscribeToQueue("PAYMENT_SELLER_DASHBOARD.PAYMENT_CREATED", async (payment) => {
         // handle payment completed event, if payment is completed by user then that replicate on seller-dashboard
         await paymentModel.create(payment);
     });
