@@ -14,6 +14,16 @@ module.exports = function () {
         await sendEmail(data.email, "Welcome to our Service!", "Thank you for registering with us!", emailHTMLTemplate); 
     })
 
+    subscribeToQueue("PAYMENT_NOTIFICATION.PAYMENT_INITIATED", async (data) => {
+        const emailHTMLTemplate = `
+        <h1>Payment Initiated</h1>
+        <p>Dear ${data.fullName.firstName + " " + ( data.fullName.lastName || "" ) },</p>
+        <p>Your payment of ${data.currency} ${data.amount} has been initiated. We will notify you once the transaction is completed.</p>
+        <p>Best regards,</p></br>the Team </p>
+        `;
+        await sendEmail(data.email, "Payment Initiated", "Your payment has been initiated", emailHTMLTemplate);
+    })
+
     subscribeToQueue("PAYMENT_NOTIFICATION.PAYMENT_COMPLETED", async (data) => {
         const emailHTMLTemplate = `
         <h1>Payment Successful!</h1>
