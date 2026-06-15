@@ -17,7 +17,7 @@ module.exports = function () {
     subscribeToQueue("PAYMENT_NOTIFICATION.PAYMENT_INITIATED", async (data) => {
         const emailHTMLTemplate = `
         <h1>Payment Initiated</h1>
-        <p>Dear ${data.fullName.firstName + " " + ( data.fullName.lastName || "" ) },</p>
+        <p>Dear ${data.username },</p>
         <p>Your payment of ${data.currency} ${data.amount} has been initiated. We will notify you once the transaction is completed.</p>
         <p>Best regards,</p></br>the Team </p>
         `;
@@ -44,6 +44,16 @@ module.exports = function () {
         <p>Best regards,</p></br>the Team </p>
         `;
         await sendEmail(data.email, "Payment Failed", "Your payment could not be processed", emailHTMLTemplate);
+    })
+
+    subscribeToQueue("PRODUCT_NOTIFICATION.PRODUCT_CREATED", async (data) => {
+        const emailHTMLTemplate = `
+        <h1>New Product Available!</h1>
+        <p>Dear ${data.username},</p>
+        <p>Check it out and enjoy the exclusive launch offers!</p>
+        <p>Best regards,</p></br>the Team </p>
+        `;
+        await sendEmail(data.email, "New Product Launched", "Check out the new product", emailHTMLTemplate);
     })
 
 }
