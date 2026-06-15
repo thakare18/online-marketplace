@@ -1,5 +1,6 @@
 const orderModel = require("../models/order.model");
 const axios = require("axios");
+const { publishToQueue } = require("../brocker/brocker");
 
 async function createOrder(req, res) {
     const user = req.user;
@@ -64,6 +65,9 @@ async function createOrder(req, res) {
                 country: req.body.shippingAddress.country
             }
         });
+
+        // publish order created event to message broker for seller dashboard update
+        await publishToQueue("ORDER_SELLER_DASHBOARD.ORDER_CREATED", order);
 
         res.status(201).json({ order });
 
