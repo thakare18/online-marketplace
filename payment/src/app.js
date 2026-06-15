@@ -7,6 +7,11 @@ app.use(express.json());
 app.use(cookieParser());
 
 
+// health check route
+    app.get('/', (req, res) => {
+    res.status(200).json({ message: "Payment service is running" });
+    });
+
 // Routes prefix for payment routes
 app.use('/api/payments', paymentRoutes);
 
