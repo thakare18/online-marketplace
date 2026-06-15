@@ -26,6 +26,7 @@ async function createProduct(req, res) {
             email: req.user.email,
             productId: product._id,
             sellerId: seller
+            
         });
 
         return res.status(201).json({
