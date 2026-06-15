@@ -8,6 +8,10 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+// health check route
+app.get('/', (req, res) => {
+    res.status(200).json({ message: "Order service is running" });
+});
 
 app.use("/api/orders", orderRoutes); // this is prefix for all order related routes, we will define the actual routes in order.routes.js file
 
