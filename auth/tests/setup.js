@@ -9,20 +9,32 @@ jest.mock('ioredis', () => {
             return {
                 on: jest.fn(),
                 quit: jest.fn().mockResolvedValue('OK'),
-                get: jest.fn(),
-                set: jest.fn(),
-                del: jest.fn(),
+                get: jest.fn().mockResolvedValue(null),
+                set: jest.fn().mockResolvedValue('OK'),
+                del: jest.fn().mockResolvedValue(1),
             };
         }),
     };
 });
 
+// Mock RabbitMQ broker to prevent connection attempts during tests
+jest.mock('../src/brocker/brocker', () => ({
+    connect: jest.fn().mockResolvedValue(undefined),
+    publishToQueue: jest.fn().mockResolvedValue(undefined),
+    subscribeToQueue: jest.fn().mockResolvedValue(undefined),
+}));
+
 const redis = require('../src/db/redis');
 
 let mongoServer;
 
+// Use a long enough timeout for MongoMemoryServer startup
+jest.setTimeout(60000);
+
 beforeAll(async () => {
     process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key';
+    process.env.REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'test-refresh-secret';
+    process.env.NODE_ENV = 'test';
 
     // Start an isolated, in-memory MongoDB instance for test runs.
     mongoServer = await MongoMemoryServer.create();
