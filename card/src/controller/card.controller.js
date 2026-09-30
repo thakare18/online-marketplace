@@ -2,7 +2,7 @@ const cardmodel = require('../models/card.model.js');
 
 async function getCart(req, res) {
   const user = req.user;
-  const userId = user?._id || user?.id;
+  const userId = user?._id || user?.id; //new 
 
   if (!userId) {
     return res.status(401).json({ message: 'Unauthorized: Invalid token' });
