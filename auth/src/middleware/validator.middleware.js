@@ -13,74 +13,72 @@ const responseValidationErrors = (req, res, next) => {
         });
     }
     next();
-
-}
+};
 
 const registerUserValidation = [
     body('username')
-    .exists({ checkFalsy: true })
-    .withMessage('Username is required')
-    .bail()
-    .isString()
-    .withMessage('Username must be a string')
-    .trim()
-    .isLength({ min: 3 })
-    .withMessage('Username must be at least 3 characters long'),
+        .exists({ checkFalsy: true })
+        .withMessage('Username is required')
+        .bail()
+        .isString()
+        .withMessage('Username must be a string')
+        .trim()
+        .isLength({ min: 3 })
+        .withMessage('Username must be at least 3 characters long'),
     body('email')
-    .exists({ checkFalsy: true })
-    .withMessage('Email is required')
-    .bail()
-    .trim()
-    .normalizeEmail()
-    .isEmail()
-    .withMessage('Invalid email address'),
+        .exists({ checkFalsy: true })
+        .withMessage('Email is required')
+        .bail()
+        .trim()
+        .normalizeEmail()
+        .isEmail()
+        .withMessage('Invalid email address'),
     body('password')
-    .exists({ checkFalsy: true })
-    .withMessage('Password is required')
-    .bail()
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+        .exists({ checkFalsy: true })
+        .withMessage('Password is required')
+        .bail()
+        .isLength({ min: 6 })
+        .withMessage('Password must be at least 6 characters long'),
     body('fullName.firstName')
-    .exists({ checkFalsy: true })
-    .withMessage('First name is required')
-    .bail()
-    .isString()
-    .withMessage('First name must be a string')
-    .trim(),
+        .exists({ checkFalsy: true })
+        .withMessage('First name is required')
+        .bail()
+        .isString()
+        .withMessage('First name must be a string')
+        .trim(),
     body('fullName.lastName')
-    .exists({ checkFalsy: true })
-    .withMessage('Last name is required')
-    .bail()
-    .isString()
-    .withMessage('Last name must be a string')
-    .trim(),
+        .exists({ checkFalsy: true })
+        .withMessage('Last name is required')
+        .bail()
+        .isString()
+        .withMessage('Last name must be a string')
+        .trim(),
     body('role')
-    .optional()
-    .isIn(['user', 'seller'])
-    .withMessage('Role must be either user or seller'),
+        .optional()
+        .isIn(['user', 'seller'])
+        .withMessage('Role must be either user or seller'),
     responseValidationErrors
-
-]
+];
 
 
 const loginUserValidation = [
     body('email')
-    .optional()
-    .trim()
-    .normalizeEmail()
-    .isEmail()
-    .withMessage('Invalid email address'),
+        .optional()
+        .trim()
+        .normalizeEmail()
+        .isEmail()
+        .withMessage('Invalid email address'),
     body('password')
-    .exists({ checkFalsy: true })
-    .withMessage('Password is required')
-    .bail()
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
+        .exists({ checkFalsy: true })
+        .withMessage('Password is required')
+        .bail()
+        .isLength({ min: 6 })
+        .withMessage('Password must be at least 6 characters long'),
     body('username')
-    .optional()
-    .trim()
-    .isString()
-    .withMessage('Username must be a string'),
+        .optional()
+        .trim()
+        .isString()
+        .withMessage('Username must be a string'),
     (req, res, next) => {
         if (!req.body.email && !req.body.username) {
             return res.status(400).json({
@@ -89,37 +87,37 @@ const loginUserValidation = [
         }
         responseValidationErrors(req, res, next);
     }
-]
+];
 
 const addUserAddressValidation = [
     body('street')
-    .exists({ checkFalsy: true })
-    .withMessage('Street is required')
-    .bail()
-    .isString()
-    .withMessage('Street must be a string')
-    .trim(),
+        .exists({ checkFalsy: true })
+        .withMessage('Street is required')
+        .bail()
+        .isString()
+        .withMessage('Street must be a string')
+        .trim(),
     body('city')
-    .exists({ checkFalsy: true })
-    .withMessage('City is required')
-    .bail()
-    .isString()
-    .withMessage('City must be a string')
-    .trim(),
+        .exists({ checkFalsy: true })
+        .withMessage('City is required')
+        .bail()
+        .isString()
+        .withMessage('City must be a string')
+        .trim(),
     body('state')
-    .exists({ checkFalsy: true })
-    .withMessage('State is required')
-    .bail()
-    .isString()
-    .withMessage('State must be a string')
-    .trim(),
+        .exists({ checkFalsy: true })
+        .withMessage('State is required')
+        .bail()
+        .isString()
+        .withMessage('State must be a string')
+        .trim(),
     body('country')
-    .exists({ checkFalsy: true })
-    .withMessage('Country is required')
-    .bail()
-    .isString()
-    .withMessage('Country must be a string')
-    .trim(),
+        .exists({ checkFalsy: true })
+        .withMessage('Country is required')
+        .bail()
+        .isString()
+        .withMessage('Country must be a string')
+        .trim(),
     body().custom((value, { req }) => {
         const zipOrPincode = req.body.zip ?? req.body.pincode;
 
@@ -134,19 +132,32 @@ const addUserAddressValidation = [
         return true;
     }),
     body('phone')
-    .optional()
-    .isMobilePhone('any')
-    .withMessage('Phone must be a valid phone number'),
+        .optional()
+        .isMobilePhone('any')
+        .withMessage('Phone must be a valid phone number'),
     body('isDefault')
-    .optional()
-    .isBoolean()
-    .withMessage('isDefault must be a boolean')
+        .optional()
+        .isBoolean()
+        .withMessage('isDefault must be a boolean')
+];
 
+/**
+ * Validates the refresh token body field.
+ * Used when a client sends the refresh token in the request body
+ * (e.g., mobile clients that don't use cookies).
+ */
+const refreshTokenValidation = [
+    body('refreshToken')
+        .optional()
+        .isString()
+        .withMessage('refreshToken must be a string'),
+    responseValidationErrors
 ];
 
 module.exports = {
     registerUserValidation,
     loginUserValidation,
     addUserAddressValidation,
+    refreshTokenValidation,
     responseValidationErrors
 };

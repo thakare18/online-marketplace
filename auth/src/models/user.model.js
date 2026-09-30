@@ -2,15 +2,15 @@ const mongoose = require('mongoose');
 
 
 const addressSchema = new mongoose.Schema({
-     street : String,
-        city : String,
-        state : String,
-        zip : String,
-        country : String,
-        isDefault : {
-            type: Boolean,
-            default: false
-        }
+    street: String,
+    city: String,
+    state: String,
+    zip: String,
+    country: String,
+    isDefault: {
+        type: Boolean,
+        default: false
+    }
 });
 
 const userSchema = new mongoose.Schema({
@@ -24,27 +24,35 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    password : {
+    password: {
         type: String,
     },
-    fullName : {
-        firstName : {
+    googleId: {
+        type: String,
+        default: null
+    },
+    fullName: {
+        firstName: {
             type: String,
             required: true
         },
-        lastName : {
+        lastName: {
             type: String,
             required: true
         }
-    }, 
-    role : {
+    },
+    role: {
         type: String,
-        enum: ['user', 'seller'],
+        enum: ['user', 'seller', 'admin'],
         default: 'user'
     },
-    addresses : [addressSchema]
-})
-
+    addresses: [addressSchema],
+    // Hashed refresh token families - store hash, not raw token
+    refreshTokenHash: {
+        type: String,
+        default: null
+    }
+}, { timestamps: true });
 
 const user = mongoose.model('user', userSchema);
 
