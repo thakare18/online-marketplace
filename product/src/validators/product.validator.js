@@ -30,11 +30,33 @@ const createProductValidators = [
         .withMessage('priceAmount must be a number > 0'),
     body('priceCurrency')
         .optional()
-        .isIn([ 'USD', 'INR' ])
+        .isIn(['USD', 'INR'])
         .withMessage('priceCurrency must be USD or INR'),
+    body('category')
+        .optional()
+        .isString()
+        .withMessage('category must be a string')
+        .trim(),
+    body('stock')
+        .optional()
+        .isInt({ min: 0 })
+        .withMessage('stock must be a non-negative integer'),
+    handleValidationErrors
+];
+
+const updateStockValidators = [
+    body('action')
+        .isIn(['set', 'increment', 'decrement'])
+        .withMessage('action must be one of: set, increment, decrement'),
+    body('quantity')
+        .notEmpty()
+        .withMessage('quantity is required')
+        .bail()
+        .isFloat({ min: 0 })
+        .withMessage('quantity must be a non-negative number'),
     handleValidationErrors
 ];
 
 
 
-module.exports = { createProductValidators };
+module.exports = { createProductValidators, updateStockValidators, handleValidationErrors };
