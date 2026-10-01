@@ -14,7 +14,10 @@ function createAuthMiddleware(roles = ['seller']) {
         }
 
         try {
-            const secret = process.env.JWT_SECRET || 'testsecret';
+            const secret = process.env.JWT_SECRET || (process.env.NODE_ENV === 'test' ? 'testsecret' : null);
+            if (!secret) {
+                return res.status(500).json({ message: 'Server configuration error: JWT secret not set' });
+            }
             const decoded = jwt.verify(token, secret);
 
             // Allow if user role matches one of allowed roles, or if user is admin

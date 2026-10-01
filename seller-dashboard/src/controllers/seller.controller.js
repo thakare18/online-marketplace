@@ -5,7 +5,7 @@ const productModel = require('../models/product.model');
 const orderModel = require('../models/order.model');
 const paymentModel = require('../models/payment.model');
 
-const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://localhost:3002';
+const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://localhost:3001';
 
 function getSellerId(req) {
     return req.user?.id || req.user?._id;
@@ -143,8 +143,8 @@ async function getMetrics(req, res) {
             payments: paymentsSummary,
         });
     } catch (error) {
-        console.error('[Seller-Dashboard] Error fetching metrics:', error.message);
-        return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+        const isDev = process.env.NODE_ENV !== 'production';
+        return res.status(500).json({ message: 'Internal Server Error', ...(isDev && { error: error.message }) });
     }
 }
 
@@ -236,8 +236,8 @@ async function getOrders(req, res) {
 
         return res.status(200).json(filteredOrders);
     } catch (error) {
-        console.error('[Seller-Dashboard] Error fetching orders:', error.message);
-        return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+        const isDev = process.env.NODE_ENV !== 'production';
+        return res.status(500).json({ message: 'Internal Server Error', ...(isDev && { error: error.message }) });
     }
 }
 
@@ -281,8 +281,8 @@ async function getProducts(req, res) {
 
         return res.status(200).json(products);
     } catch (error) {
-        console.error('[Seller-Dashboard] Error fetching products:', error.message);
-        return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+        const isDev = process.env.NODE_ENV !== 'production';
+        return res.status(500).json({ message: 'Internal Server Error', ...(isDev && { error: error.message }) });
     }
 }
 
@@ -364,8 +364,8 @@ async function createProduct(req, res) {
             product: createdProduct,
         });
     } catch (error) {
-        console.error('[Seller-Dashboard] Error creating product:', error.message);
-        return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+        const isDev = process.env.NODE_ENV !== 'production';
+        return res.status(500).json({ message: 'Internal Server Error', ...(isDev && { error: error.message }) });
     }
 }
 
