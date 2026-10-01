@@ -122,20 +122,20 @@ async function getProducts(req, res) {
 
         const filter = {};
 
-        if (q) {
-            filter.$text = { $search: q };
+        if (q && typeof q === 'string') {
+            filter.$text = { $search: String(q) };
         }
 
-        if (minprice !== undefined) {
+        if (minprice !== undefined && !isNaN(Number(minprice))) {
             filter['price.amount'] = { ...filter['price.amount'], $gte: Number(minprice) };
         }
 
-        if (maxprice !== undefined) {
+        if (maxprice !== undefined && !isNaN(Number(maxprice))) {
             filter['price.amount'] = { ...filter['price.amount'], $lte: Number(maxprice) };
         }
 
-        if (category) {
-            filter.category = category;
+        if (category && typeof category === 'string') {
+            filter.category = String(category);
         }
 
         const products = await productModel.find(filter).skip(skip).limit(limit);
