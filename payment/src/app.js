@@ -1,21 +1,59 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const mongoose = require('mongoose');
 const paymentRoutes = require('./routes/payment.routes');
 
 const app = express();
+
+// ─── Security Headers ─────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    next();
+});
+
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3007'];
+
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        res.setHeader('Access-Control-Allow-Origin', origin || '*');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    }
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+    next();
+});
+
 app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 
-// Health check route
+// ─── Health & Observability ──────────────────────────────────────────────────
 app.get('/', (req, res) => {
     res.status(200).json({ service: 'payment', status: 'running', timestamp: new Date().toISOString() });
 });
 
 app.get('/health', (req, res) => {
-    res.status(200).json({ service: 'payment', status: 'healthy', timestamp: new Date().toISOString() });
+    const dbConnected = mongoose.connection.readyState === 1;
+    res.status(200).json({
+        service: 'payment',
+        status: dbConnected ? 'healthy' : 'degraded',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        readiness: {
+            database: dbConnected ? 'connected' : 'disconnected'
+        }
+    });
 });
 
-// Routes prefix for payment routes
 app.use('/api/payments', paymentRoutes);
 
 // 404 handler

@@ -267,10 +267,17 @@ async function verifyPayment(req, res) {
             .update(`${razorpayOrderId}|${paymentId}`)
             .digest('hex');
 
-        const isValid = crypto.timingSafeEqual(
-            Buffer.from(expectedSignature, 'hex'),
-            Buffer.from(signature, 'hex')
-        );
+        const expectedBuf = Buffer.from(expectedSignature, 'hex');
+        let signatureBuf;
+        try {
+            signatureBuf = Buffer.from(signature, 'hex');
+        } catch (_) {
+            signatureBuf = Buffer.alloc(0);
+        }
+
+        const isValid = expectedBuf.length === signatureBuf.length &&
+            expectedBuf.length > 0 &&
+            crypto.timingSafeEqual(expectedBuf, signatureBuf);
 
         if (!isValid) {
             // Mark payment as FAILED (invalid signature)
