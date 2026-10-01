@@ -1,9 +1,21 @@
 require('./setup.js/env');
 require('./setup.js/mongodb');
+jest.mock('../src/brocker/brocker', () => ({
+    connect: jest.fn().mockResolvedValue(undefined),
+    publishToQueue: jest.fn().mockResolvedValue(undefined),
+    subscribeToQueue: jest.fn().mockResolvedValue(undefined),
+}));
+jest.mock('axios', () => ({
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn().mockResolvedValue({ data: {} }), // stock restore during cancel
+    delete: jest.fn().mockResolvedValue({ data: {} }),
+}));
 const request = require('supertest');
 const app = require('../src/app');
 const { getAuthCookie } = require('./setup.js/auth');
 const orderModel = require('../src/models/order.model');
+
 
 
 describe('POST /api/orders/:id/cancel — Buyer-initiated cancel while rules apply', () => {
