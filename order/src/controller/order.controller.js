@@ -403,6 +403,44 @@ async function updateOrderStatus(req, res) {
 }
 
 
+/**
+ * PATCH /api/orders/:id/payment-status
+ * Called by Payment service after successful Razorpay verification.
+ * Accepts user or admin tokens (service-to-service call).
+ */
+async function updateOrderPaymentStatus(req, res) {
+    const orderId = req.params.id;
+    const { paymentStatus } = req.body;
+
+    const validStatuses = ['UNPAID', 'PAID', 'REFUNDED', 'FAILED'];
+    if (!paymentStatus || !validStatuses.includes(paymentStatus)) {
+        return res.status(400).json({ message: `Invalid paymentStatus. Must be one of: ${validStatuses.join(', ')}` });
+    }
+
+    try {
+        if (!mongoose.Types.ObjectId.isValid(orderId)) {
+            return res.status(400).json({ message: 'Invalid order ID' });
+        }
+
+        const order = await orderModel.findById(orderId).exec();
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        order.paymentStatus = paymentStatus;
+        if (paymentStatus === 'PAID' && order.status === 'PENDING') {
+            order.status = 'CONFIRMED';
+        }
+        await order.save();
+
+        return res.status(200).json({ order });
+    } catch (err) {
+        console.error('[ORDER] updateOrderPaymentStatus error:', err);
+        return res.status(500).json({ message: 'Internal server error', error: err.message });
+    }
+}
+
+
 module.exports = {
     createOrder,
     getMyOrders,
@@ -410,4 +448,5 @@ module.exports = {
     cancelOrderById,
     updateOrderAddress,
     updateOrderStatus,
+    updateOrderPaymentStatus,
 };

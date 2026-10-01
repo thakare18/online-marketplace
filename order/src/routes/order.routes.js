@@ -49,5 +49,12 @@ router.patch(
     orderController.updateOrderStatus
 );
 
+// PATCH /api/orders/:id/payment-status — Payment service callback (sync payment status)
+router.patch(
+    '/:id/payment-status',
+    authMiddleware(['user', 'admin']),
+    orderController.updateOrderPaymentStatus
+);
+
 
 module.exports = router;
