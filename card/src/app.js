@@ -1,29 +1,75 @@
 const express = require('express');
-const cardRoutes = require('./routes/card.routes');
 const cookieParser = require('cookie-parser');
+const mongoose = require('mongoose');
+const cardRoutes = require('./routes/card.routes');
 
 const app = express();
-app.use(express.json());
+
+// ─── Security Headers ─────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    next();
+});
+
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : ['http://localhost:5173', 'http://localhost:3000'];
+
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        res.setHeader('Access-Control-Allow-Origin', origin || '*');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    }
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+    next();
+});
+
+app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 
-
-//health check endpoint
+// ─── Health & Status Endpoints ───────────────────────────────────────────────
 app.get('/', (req, res) => {
-	res.status(200).json({ message: 'Cart service is running' });
+    res.status(200).json({ message: 'Cart service is running' });
 });
 
 app.get('/health', (req, res) => {
-	res.status(200).json({ status: 'healthy', service: 'cart', timestamp: new Date().toISOString() });
+    const dbConnected = mongoose.connection.readyState === 1;
+    res.status(200).json({
+        status: dbConnected ? 'healthy' : 'degraded',
+        service: 'cart',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        readiness: {
+            database: dbConnected ? 'connected' : 'disconnected'
+        }
+    });
 });
 
-app.use('/api/cards', cardRoutes); //prefix for all card related routes
+app.use('/api/cards', cardRoutes);
 
-// Surface async route errors (Express 5 will forward rejected promises here)
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+});
+
+// Surface async route errors safely
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-	console.error('Unhandled error:', err);
-	res.status(500).json({ message: 'Internal server error', error: err?.message });
+    console.error('[Cart] Unhandled error:', err.message);
+    const isDev = process.env.NODE_ENV !== 'production';
+    res.status(err.status || 500).json({
+        message: err.message || 'Internal server error',
+        ...(isDev && { stack: err.stack })
+    });
 });
-
-
 
 module.exports = app;
