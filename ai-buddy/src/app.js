@@ -5,7 +5,55 @@ const { agent, isConfigured } = require('./agent/agent');
 
 const app = express();
 
-app.use(express.json());
+// ─── Security Headers ─────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    next();
+});
+
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3007'];
+
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        res.setHeader('Access-Control-Allow-Origin', origin || '*');
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    }
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+    next();
+});
+
+app.use(express.json({ limit: '10kb' }));
+
+// Simple in-memory rate limiter for REST chat endpoint
+const restRateLimits = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000;
+const MAX_REQUESTS = 30;
+
+function checkRestRateLimit(ip) {
+    const now = Date.now();
+    let record = restRateLimits.get(ip);
+    if (!record || now > record.resetTime) {
+        record = { count: 1, resetTime: now + RATE_LIMIT_WINDOW };
+        restRateLimits.set(ip, record);
+        return true;
+    }
+    if (record.count >= MAX_REQUESTS) {
+        return false;
+    }
+    record.count++;
+    return true;
+}
 
 // ─── Health & Status Endpoints ───────────────────────────────────────────────
 
@@ -28,6 +76,11 @@ app.get('/health', (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
     try {
+        const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+        if (process.env.NODE_ENV !== 'test' && !checkRestRateLimit(clientIp)) {
+            return res.status(429).json({ message: 'Rate limit exceeded. Please wait a moment.' });
+        }
+
         const { message } = req.body;
         if (!message || typeof message !== 'string' || !message.trim()) {
             return res.status(400).json({ message: 'Validation failed: message must be a non-empty string' });
@@ -100,9 +153,14 @@ app.use((req, res) => {
 
 // ─── Global Error Handler ────────────────────────────────────────────────────
 
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
     console.error('[AI-Buddy] Unhandled server error:', err.message);
-    res.status(500).json({ message: 'Internal server error' });
+    const isDev = process.env.NODE_ENV !== 'production';
+    res.status(500).json({
+        message: 'Internal server error',
+        ...(isDev && { error: err.message })
+    });
 });
 
 module.exports = app;
