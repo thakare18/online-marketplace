@@ -1,11 +1,14 @@
 const jwt = require('jsonwebtoken');
 
-function authMiddleware(roles = [ "user" ]) {
+function authMiddleware(roles = ['user']) {
     return function checkAuth(req, res, next) {
-        const token = req.cookies.token;
+        // Accept token from cookie (primary) or Authorization header (Bearer)
+        const token = req.cookies?.token
+            || req.cookies?.accessToken
+            || req.headers?.authorization?.split(' ')[1];
 
         if (!token) {
-            return res.status(401).json({ message: 'Unauthorized: No token Provided' });
+            return res.status(401).json({ message: 'Unauthorized: No token provided' });
         }
 
         try {
@@ -15,7 +18,7 @@ function authMiddleware(roles = [ "user" ]) {
                 return res.status(403).json({ message: 'Forbidden' });
             }
 
-            req.user = decoded; // Attach user info to the request
+            req.user = decoded;
             return next();
         } catch (err) {
             return res.status(401).json({ message: 'Unauthorized' });
