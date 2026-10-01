@@ -13,17 +13,18 @@ jest.mock('../src/models/card.model.js', () => {
             this._id = mockGenerateObjectId();
             this.user = user;
             this.items = items || [];
+            this.updatedAt = new Date().toISOString();
         }
         static async findOne(query) {
-            return carts.get(query.user) || null;
+            return carts.get(String(query.user)) || null;
         }
         static async create(data) {
             const card = new CardMock(data);
-            carts.set(card.user, card);
+            carts.set(String(card.user), card);
             return card;
         }
         async save() {
-            carts.set(this.user, this);
+            carts.set(String(this.user), this);
             return this;
         }
     }
@@ -31,7 +32,19 @@ jest.mock('../src/models/card.model.js', () => {
     return CardMock;
 });
 
+// Mock Product service
+jest.mock('../src/services/product.service.js', () => ({
+    getProduct: jest.fn().mockResolvedValue({
+        _id: 'mock-product-id',
+        title: 'Mock Product',
+        price: { amount: 100, currency: 'INR' },
+        stock: 50,
+    }),
+    updateProductStock: jest.fn().mockResolvedValue({ success: true }),
+}));
+
 const CardModel = require('../src/models/card.model.js');
+const { getProduct } = require('../src/services/product.service.js');
 const app = require('../src/app');
 
 function generateObjectId() {
@@ -51,6 +64,12 @@ describe('PATCH /api/cart/items/:productId', () => {
 
     beforeEach(() => {
         CardModel.__reset();
+        getProduct.mockResolvedValue({
+            _id: existingProductId,
+            title: 'Mock Product',
+            price: { amount: 100, currency: 'INR' },
+            stock: 50,
+        });
     });
 
     test('updates quantity of existing item', async () => {
@@ -68,7 +87,7 @@ describe('PATCH /api/cart/items/:productId', () => {
 
         expect(res.status).toBe(200);
         expect(res.body.message).toBe('Item updated');
-        expect(res.body.cart.items[ 0 ]).toMatchObject({ productId: existingProductId, quantity: 5 });
+        expect(res.body.cart.items[0]).toMatchObject({ productId: existingProductId, quantity: 5 });
     });
 
     test('404 when cart not found', async () => {
@@ -145,5 +164,29 @@ describe('PATCH /api/cart/items/:productId', () => {
             .set('Authorization', 'Bearer invalid.token.here')
             .send({ qty: 2 });
         expect(res.status).toBe(401);
+    });
+
+    test('409 when update quantity exceeds stock', async () => {
+        const token = signToken({ id: userId, role: 'user' });
+        await request(app)
+            .post(postEndpoint)
+            .set('Authorization', `Bearer ${token}`)
+            .send({ productId: existingProductId, qty: 1 });
+
+        // Mock low stock for update
+        getProduct.mockResolvedValue({
+            _id: existingProductId,
+            title: 'Low Stock',
+            price: { amount: 100, currency: 'INR' },
+            stock: 3,
+        });
+
+        const res = await request(app)
+            .patch(`${patchBase}/${existingProductId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send({ qty: 10 });
+
+        expect(res.status).toBe(409);
+        expect(res.body.message).toMatch(/insufficient stock/i);
     });
 });

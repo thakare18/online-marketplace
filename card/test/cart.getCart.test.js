@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
 
+// Mock card model (in-memory store)
 jest.mock('../src/models/card.model.js', () => {
     function mockGenerateObjectId() {
         return Array.from({ length: 24 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
@@ -13,26 +14,38 @@ jest.mock('../src/models/card.model.js', () => {
             this._id = mockGenerateObjectId();
             this.user = user;
             this.items = items || [];
+            this.updatedAt = new Date().toISOString();
         }
         static async findOne(query) {
-            return carts.get(query.user) || null;
+            return carts.get(String(query.user)) || null;
         }
         static async create(data) {
             const card = new CardMock(data);
-            carts.set(card.user, card);
+            carts.set(String(card.user), card);
             return card;
         }
         async save() {
-            carts.set(this.user, this);
+            carts.set(String(this.user), this);
             return this;
         }
     }
     CardMock.__reset = () => carts.clear();
     CardMock.__seed = (user, data) => {
-        carts.set(user, data);
+        carts.set(String(user), data);
     };
     return CardMock;
 });
+
+// Mock Product service so tests don't depend on a running Product service
+jest.mock('../src/services/product.service.js', () => ({
+    getProduct: jest.fn().mockResolvedValue({
+        _id: 'mock-product-id',
+        title: 'Mock Product',
+        price: { amount: 100, currency: 'INR' },
+        stock: 50,
+    }),
+    updateProductStock: jest.fn().mockResolvedValue({ success: true }),
+}));
 
 const CardModel = require('../src/models/card.model.js');
 const app = require('../src/app');
@@ -72,8 +85,6 @@ describe('GET /api/cart', () => {
             .get(getEndpoint)
             .set('Authorization', `Bearer ${token}`);
 
-        // Expected shape once implemented:
-        // status 200, body: { cart: { items: [...] }, totals: { itemCount, totalQuantity } }
         expect(res.status).toBe(200);
         expect(Array.isArray(res.body.cart.items)).toBe(true);
         expect(res.body.cart.items).toHaveLength(2);
@@ -85,7 +96,6 @@ describe('GET /api/cart', () => {
         const res = await request(app)
             .get(getEndpoint)
             .set('Authorization', `Bearer ${token}`);
-        // Expectation once implemented:
         expect(res.status).toBe(200);
         expect(res.body.cart.items).toHaveLength(0);
         expect(res.body.totals).toMatchObject({ itemCount: 0, totalQuantity: 0 });
