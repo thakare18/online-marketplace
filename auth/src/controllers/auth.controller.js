@@ -44,7 +44,7 @@ function generateAccessToken(user) {
 
 function generateRefreshToken(user) {
     return jwt.sign(
-        { id: user._id, type: 'refresh' },
+        { id: user._id, type: 'refresh', jti: crypto.randomUUID() },
         process.env.REFRESH_TOKEN_SECRET || process.env.JWT_SECRET,
         { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '7d' }
     );
@@ -91,7 +91,7 @@ async function registerUser(req, res) {
             email: normalizedEmail,
             password: hash,
             fullName: { firstName, lastName },
-            role: role || 'user' // only 'user' or 'seller' allowed via public registration
+            role: role === 'seller' ? 'seller' : 'user' // strictly prevent admin creation via public registration
         });
 
         // Publish events - don't fail registration if RabbitMQ is down

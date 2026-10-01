@@ -72,10 +72,16 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
+    const mongoose = require('mongoose');
+    const dbConnected = mongoose.connection.readyState === 1;
     res.status(200).json({
         service: 'auth',
-        status: 'healthy',
-        timestamp: new Date().toISOString()
+        status: dbConnected ? 'healthy' : 'degraded',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        readiness: {
+            database: dbConnected ? 'connected' : 'disconnected'
+        }
     });
 });
 
