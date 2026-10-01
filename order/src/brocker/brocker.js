@@ -49,11 +49,16 @@ async function subscribeToQueue(queueName, callback) {
         }
         await channel.assertQueue(queueName, { durable: true });
 
-        channel.consume(queueName, async (msg) => { // fixed: was 'data', reference to 'msg' undefined
-            if (msg !== null) {
-                const message = JSON.parse(msg.content.toString());
+        channel.consume(queueName, async (msg) => {
+            if (msg === null) return;
+            try {
+                const raw = JSON.parse(msg.content.toString());
+                const message = (raw && typeof raw === 'object' && raw.data !== undefined) ? raw.data : raw;
                 await callback(message);
                 channel.ack(msg);
+            } catch (err) {
+                console.error(`[Order Broker] Error processing message from ${queueName}:`, err.message);
+                try { channel.nack(msg, false, false); } catch (_) {}
             }
         });
     } catch (error) {
