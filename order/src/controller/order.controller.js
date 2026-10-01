@@ -159,19 +159,22 @@ async function createOrder(req, res) {
         });
 
         // 7. Publish order created event
-        await publishOrderEvent('order.created', {
+        const orderEventPayload = {
+            _id: order._id,
             orderId: order._id,
+            user: order.user,
             userId: order.user,
-            items: orderItems.map(i => ({ productId: i.product, quantity: i.quantity })),
+            email: req.user?.email,
+            username: req.user?.username,
+            items: order.items,
             totalPrice: order.totalPrice,
-        });
+            status: order.status,
+            paymentStatus: order.paymentStatus,
+        };
+        await publishOrderEvent('order.created', orderEventPayload);
 
         // Legacy queue name for backward compat
-        await publishOrderEvent('ORDER_SELLER_DASHBOARD.ORDER_CREATED', {
-            orderId: order._id,
-            userId: order.user,
-            totalPrice: order.totalPrice,
-        });
+        await publishOrderEvent('ORDER_SELLER_DASHBOARD.ORDER_CREATED', orderEventPayload);
 
         // 8. Clear cart after successful order (non-fatal if fails)
         await clearUserCart(token);
@@ -296,6 +299,8 @@ async function cancelOrderById(req, res) {
         await publishOrderEvent('order.cancelled', {
             orderId: order._id,
             userId: order.user,
+            email: req.user?.email,
+            username: req.user?.username,
             items: order.items.map(i => ({ productId: i.product, quantity: i.quantity })),
         });
 
