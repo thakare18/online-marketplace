@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken');
 
-function createAuthMiddleware(roles = [ "user" ]) {
-
+function createAuthMiddleware(roles = ['seller']) {
     return function authMiddleware(req, res, next) {
-        const token = req.cookies?.token || req.headers?.authorization?.split(' ')[ 1 ];
+        const token =
+            req.cookies?.token ||
+            req.cookies?.accessToken ||
+            req.headers?.authorization?.split(' ')[1];
 
         if (!token) {
             return res.status(401).json({
@@ -12,26 +14,31 @@ function createAuthMiddleware(roles = [ "user" ]) {
         }
 
         try {
-            const decoded = jwt.verify(token, process.env.JWT_SECRET)
+            const secret = process.env.JWT_SECRET || 'testsecret';
+            const decoded = jwt.verify(token, secret);
 
-            if (!roles.includes(decoded.role)) {
+            // Allow if user role matches one of allowed roles, or if user is admin
+            if (!roles.includes(decoded.role) && decoded.role !== 'admin') {
                 return res.status(403).json({
                     message: 'Forbidden: Insufficient permissions',
                 });
             }
 
-            req.user = decoded;
+            const userId = decoded.id || decoded._id || decoded.userId;
+            req.user = {
+                ...decoded,
+                _id: userId,
+                id: userId,
+            };
+            req.token = token;
+
             next();
-        }
-        catch (err) {
+        } catch (err) {
             return res.status(401).json({
                 message: 'Unauthorized: Invalid token',
             });
         }
-
-    }
-
+    };
 }
-
 
 module.exports = createAuthMiddleware;
