@@ -12,6 +12,10 @@ app.get('/', (req, res) => {
 	res.status(200).json({ message: 'Cart service is running' });
 });
 
+app.get('/health', (req, res) => {
+	res.status(200).json({ status: 'healthy', service: 'cart', timestamp: new Date().toISOString() });
+});
+
 app.use('/api/cards', cardRoutes); //prefix for all card related routes
 
 // Surface async route errors (Express 5 will forward rejected promises here)

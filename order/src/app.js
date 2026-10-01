@@ -12,6 +12,10 @@ app.get('/', (req, res) => {
     res.status(200).json({ service: 'order', status: 'running', timestamp: new Date().toISOString() });
 });
 
+app.get('/health', (req, res) => {
+    res.status(200).json({ service: 'order', status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 app.use('/api/orders', orderRoutes);
 
 // 404 handler

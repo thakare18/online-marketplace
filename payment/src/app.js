@@ -11,6 +11,10 @@ app.get('/', (req, res) => {
     res.status(200).json({ service: 'payment', status: 'running', timestamp: new Date().toISOString() });
 });
 
+app.get('/health', (req, res) => {
+    res.status(200).json({ service: 'payment', status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 // Routes prefix for payment routes
 app.use('/api/payments', paymentRoutes);
 

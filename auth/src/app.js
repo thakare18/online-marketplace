@@ -71,6 +71,14 @@ app.get('/', (req, res) => {
     });
 });
 
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        service: 'auth',
+        status: 'healthy',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 
